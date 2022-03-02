@@ -1,10 +1,6 @@
 #ifndef __TC_H__
 #define __TC_H__
 
-#include <sys/types.h>
-#include <stdint.h>
-#include <net/if_arp.h>
-
 #define TASK_SIZ 16
 
 enum ip_proto {
