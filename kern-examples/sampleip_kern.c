@@ -5,7 +5,8 @@
  * License as published by the Free Software Foundation.
  */
 #include <linux/ptrace.h>
-#include <uapi/linux/bpf.h>
+//#include <uapi/linux/bpf.h>
+#include "bpf.h"
 #include <uapi/linux/bpf_perf_event.h>
 #include <bpf/bpf_helpers.h>
 #include <bpf/bpf_tracing.h>

@@ -16,6 +16,8 @@
 #include "tc.h"
 #include "tc.skel.h"
 
+#define ETH_P_IP	0x0800
+
 static volatile bool
 exiting = false;
 
@@ -25,24 +27,47 @@ sig_handler(int s_val)
 	exiting = true;
 }
 
-static void
-bump_memlock_rlimit(void)
-{
-	struct rlimit rlim_n = {
-		.rlim_cur = RLIM_INFINITY,
-		.rlim_max = RLIM_INFINITY
-	};
-
-	if (setrlimit(RLIMIT_MEMLOCK, &rlim_n)) {
-		fprintf(stderr, "ERROR: setrlimit %s\n", strerror(errno));
-		exit(EXIT_FAILURE);
-	}
-}
+//static void
+//bump_memlock_rlimit(void)
+//{
+//	struct rlimit rlim_n = {
+//		.rlim_cur = RLIM_INFINITY,
+//		.rlim_max = RLIM_INFINITY
+//	};
+//
+//	if (setrlimit(RLIMIT_MEMLOCK, &rlim_n)) {
+//		fprintf(stderr, "ERROR: setrlimit %s\n", strerror(errno));
+//		exit(EXIT_FAILURE);
+//	}
+//}
 
 static int
 handle_evt(void *ctx, void *data, size_t sz)
 {
+	struct tc_evt *evt = data;
 	printf("PAKT\n");
+	if (evt->state == ALLOWED) printf("ALLOWD ");
+	else printf("BLKED ");
+
+	if (evt->eth_type == ETH_P_IP)
+	{
+		printf("comm={%s}\n", evt->comm);
+		printf("tgid={%d}, pid={%d}\n", evt->tgid, evt->pid);
+		if (evt->ip.ipp == UDP_V4) {
+			char addr[15];
+			memset(addr, 0, sizeof(addr));
+			snprintf(addr, sizeof(addr), "%d.%d.%d.%d", \
+				evt->ip.addr.ip4_addr[0], \
+				evt->ip.addr.ip4_addr[1], \
+				evt->ip.addr.ip4_addr[2], \
+				evt->ip.addr.ip4_addr[3]);
+		} else {
+			printf("NOT: udp\n");
+		}
+	} else {
+		printf("NOT: eth\n");
+	}
+
 	fflush(stdout);
 	return 0;
 }
@@ -55,7 +80,7 @@ main(int argc, char *argv[])
 	DECLARE_LIBBPF_OPTS(bpf_tc_opts, opts, \
 		.handle = 1, .priority = 1);
 
-	bump_memlock_rlimit();
+//	bump_memlock_rlimit();
 
 	signal(SIGTERM, sig_handler);
 	signal(SIGINT, sig_handler);
@@ -89,7 +114,7 @@ main(int argc, char *argv[])
 	int dtch = bpf_tc_detach(&hook, &opts);
 	int dstr = bpf_tc_hook_destroy(&hook);
 
-	printf("dtch={%d}, dstr={%d}\n", dtch, dstr);
+	printf("USRS: dtch={%d}, dstr={%d}\n", dtch, dstr);
 
 	return 0;
 }
