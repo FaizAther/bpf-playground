@@ -6,11 +6,9 @@
 
 #include "tc.h"
 
-
 //#include <linux/if_ether.h>
 #define ETH_P_IP	0x0800
 #define ETH_P_ARP	0x0806
-
 
 //#include <linux/pkt_cls.h>
 #define TC_ACT_OK	0
@@ -75,7 +73,8 @@ is_udp(void *iph, u8 hdr_sz, void *data_end)
 	return udph;
 }
 
-struct arphdr *is_arp(struct ethhdr *eth, void *data_end)
+struct arphdr *
+is_arp(struct ethhdr *eth, void *data_end)
 {
 	struct arphdr *arp = NULL;
 	if (!eth || !data_end) {
